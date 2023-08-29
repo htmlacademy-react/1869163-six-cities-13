@@ -14,6 +14,18 @@ export const city: CityType = {
   location: { latitude: 48.85661, longitude: 2.351499, zoom: 13 },
 };
 
+export const HAS_LETTER_REGEXP = /[a-zA-Z]/;
+export const HAS_NUMBER_REGEXP = /[0-9]/;
+
+export const cities = [
+  'Paris',
+  'Cologne',
+  'Brussels',
+  'Amsterdam',
+  'Hamburg',
+  'Dusseldorf',
+];
+
 export enum AppRoute {
   Root = '/',
   Login = '/login',
@@ -48,8 +60,13 @@ export enum CardSort {
   TOP_RATED_FIRST = 'Top rated first',
 }
 
-export const URL_MARKER_DEFAULT =
-  'https://assets.htmlacademy.ru/content/intensive/javascript-1/demo/interactive-map/pin.svg';
+export enum ApartmentType {
+  apartment = 'Apartment',
+  room = 'Private Room',
+  house = 'House',
+  hotel = 'Hotel',
+}
 
-export const URL_MARKER_CURRENT =
-  'https://assets.htmlacademy.ru/content/intensive/javascript-1/demo/interactive-map/main-pin.svg';
+export const URL_MARKER_DEFAULT = '/img/pin.svg';
+
+export const URL_MARKER_CURRENT = '/img/pin-active.svg';

@@ -10,15 +10,16 @@ import {
 } from '../../store/api-actions';
 import { useEffect } from 'react';
 import classNames from 'classnames';
-import { NameSpace } from '../../const';
+import { ApartmentType, NameSpace } from '../../const';
 import LoadingScreen from '../loading-screen/loading-screen';
 import Header from '../../components/header/header';
 import OfferGallery from '../../components/offer-gallery/offer-gallery';
-import OfferNearPlacesList from '../../components/offer-near-places/offer-near-places-list';
-import ReviewFormMemo from '../../components/review/review-form';
-import ReviewList from '../../components/review/review-list';
+import OfferNearPlacesList from '../../components/offer-near-places-item/offer-near-places-list';
+import ReviewFormMemo from '../../components/review-form/review-form';
+import ReviewList from '../../components/review-item/review-list';
 import StarRating from '../../components/star-rating/star-rating';
 import OfferGoods from '../../components/offer-goods/offer-goods';
+import NotFoundPage from '../not-found-page/not-found-page';
 
 function OfferPage(): JSX.Element {
   const initialComments = useAppSelector(
@@ -27,9 +28,15 @@ function OfferPage(): JSX.Element {
   const chosenOffer = useAppSelector(
     (state) => state[NameSpace.Data].chosenOffer
   );
+  const isChosenOfferLoading = useAppSelector(
+    (state) => state[NameSpace.Data].isChosenOfferLoading
+  );
   const randomOffersNearby = useAppSelector(
     (state) => state[NameSpace.Data].randomOffersNearby
   );
+
+  const apartmentType =
+    ApartmentType[chosenOffer?.type as keyof typeof ApartmentType];
 
   const dispatch = useAppDispatch();
   const { isAuth, isNoAuth } = useAuthorizationStatus();
@@ -40,8 +47,12 @@ function OfferPage(): JSX.Element {
     dispatch(fetchOffersNearbyAction({ offerId: id }));
   }, [dispatch, id]);
 
-  if (!chosenOffer) {
+  if (isChosenOfferLoading) {
     return <LoadingScreen />;
+  }
+
+  if (!chosenOffer) {
+    return <NotFoundPage />;
   }
 
   return (
@@ -113,7 +124,7 @@ function OfferPage(): JSX.Element {
               </div>
               <ul className="offer__features">
                 <li className="offer__feature offer__feature--entire">
-                  {chosenOffer.type}
+                  {apartmentType}
                 </li>
                 <li className="offer__feature offer__feature--bedrooms">
                   {chosenOffer.bedrooms} Bedrooms
@@ -164,7 +175,7 @@ function OfferPage(): JSX.Element {
                 <h2 className="reviews__title">
                   Reviews ·{' '}
                   <span className="reviews__amount">
-                    {initialComments.length}
+                    {initialComments?.length}
                   </span>
                 </h2>
                 <ReviewList offerId={id} />
@@ -172,7 +183,7 @@ function OfferPage(): JSX.Element {
               </section>
             </div>
           </div>
-          {chosenOffer && (
+          {chosenOffer && randomOffersNearby && (
             <section className="offer__map map">
               <Map
                 city={chosenOffer.city}
@@ -187,7 +198,9 @@ function OfferPage(): JSX.Element {
             <h2 className="near-places__title">
               Other places in the neighbourhood
             </h2>
-            <OfferNearPlacesList offersNearby={randomOffersNearby} />
+            {randomOffersNearby && (
+              <OfferNearPlacesList offersNearby={randomOffersNearby} />
+            )}
           </section>
         </div>
       </main>

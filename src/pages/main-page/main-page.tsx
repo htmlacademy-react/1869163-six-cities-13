@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import CardList from '../../components/card/card-list';
 import Map from '../../components/map/map';
@@ -11,23 +10,21 @@ import {
   sortPriceHighToLow,
   sortPriceLowToHigh,
 } from '../../store/cities-data/cities-data';
-import { CardSort, NameSpace } from '../../const';
+import { CardSort, NameSpace, cities } from '../../const';
 import MainPageEmpty from './main-page-empty';
 import Header from '../../components/header/header';
-import Tabs from '../../components/tabs/tabs';
+import Tabs from '../../components/tab-item/tabs';
+import { activeCityNameSelector, cardsSelector } from '../../store/selectors';
 
 function MainPage(): JSX.Element {
-  const cards = useAppSelector((state) => state[NameSpace.Data].cards);
+  const cards = useAppSelector(cardsSelector);
 
   const initialCards = useAppSelector(
     (state) => state[NameSpace.Data].initialCards
   );
 
   const city = useAppSelector((state) => state[NameSpace.Data].city);
-  const cities = useMemo(
-    () => [...new Set(initialCards.map((card) => card.city.name))],
-    [initialCards]
-  );
+  const activeCityName = useAppSelector(activeCityNameSelector);
 
   const [SortOpeningState, setSortOpeningState] = useState(false);
   const [activeSort, setActiveSort] = useState(CardSort.POPULAR);
@@ -35,16 +32,17 @@ function MainPage(): JSX.Element {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(filterByCity('Paris'));
-  }, [dispatch]);
+    if (!city) {
+      return;
+    }
+    dispatch(filterByCity(city.name));
+  }, [city, city?.name, dispatch]);
 
   useEffect(() => {
     setActiveSort(CardSort.POPULAR);
   }, [city]);
 
-  function handleSortOpening() {
-    setSortOpeningState(!SortOpeningState);
-  }
+  const handleSortOpening = () => setSortOpeningState(!SortOpeningState);
 
   return (
     <div className="page page--gray page--main">
@@ -55,14 +53,14 @@ function MainPage(): JSX.Element {
       <main className="page__main page__main--index">
         <h1 className="visually-hidden">Cities</h1>
         <Tabs cities={cities} />
-        {cards.length === 0 && <MainPageEmpty city={city} />}
-        {cards.length !== 0 && (
+        {initialCards?.length === 0 && <MainPageEmpty />}
+        {initialCards?.length !== 0 && (
           <div className="cities">
             <div className="cities__places-container container">
               <section className="cities__places places">
                 <h2 className="visually-hidden">Places</h2>
                 <b className="places__found">
-                  {cards.length} places to stay in {city.name}
+                  {cards?.length} places to stay in {activeCityName}
                 </b>
                 <form
                   onClick={handleSortOpening}
@@ -84,17 +82,18 @@ function MainPage(): JSX.Element {
                     )}
                   >
                     <li
-                      className="places__option places__option--active"
-                      tabIndex={0}
-                      onClick={() => {
-                        dispatch(filterByCity(city.name));
-                        setActiveSort(CardSort.POPULAR);
-                      }}
+                      className={classNames('places__option', {
+                        'places__option--active':
+                          activeSort === CardSort.POPULAR,
+                      })}
                     >
                       Popular
                     </li>
                     <li
-                      className="places__option"
+                      className={classNames('places__option', {
+                        'places__option--active':
+                          activeSort === CardSort.LOW_TO_HIGH,
+                      })}
                       tabIndex={0}
                       onClick={() => {
                         dispatch(sortPriceLowToHigh());
@@ -104,7 +103,10 @@ function MainPage(): JSX.Element {
                       Price: low to high
                     </li>
                     <li
-                      className="places__option"
+                      className={classNames('places__option', {
+                        'places__option--active':
+                          activeSort === CardSort.HIGH_TO_LOW,
+                      })}
                       tabIndex={0}
                       onClick={() => {
                         dispatch(sortPriceHighToLow());
@@ -114,7 +116,10 @@ function MainPage(): JSX.Element {
                       Price: high to low
                     </li>
                     <li
-                      className="places__option"
+                      className={classNames('places__option', {
+                        'places__option--active':
+                          activeSort === CardSort.TOP_RATED_FIRST,
+                      })}
                       tabIndex={0}
                       onClick={() => {
                         dispatch(sortByRating());
@@ -131,7 +136,9 @@ function MainPage(): JSX.Element {
               </section>
               <div className="cities__right-section">
                 <section className="cities__map map">
-                  <Map city={city} cards={cards} isOfferPage={false} />
+                  {city && cards && (
+                    <Map city={city} cards={cards} isOfferPage={false} />
+                  )}
                 </section>
               </div>
             </div>
