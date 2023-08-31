@@ -20,6 +20,11 @@ import ReviewList from '../../components/review-item/review-list';
 import StarRating from '../../components/star-rating/star-rating';
 import OfferGoods from '../../components/offer-goods/offer-goods';
 import NotFoundPage from '../not-found-page/not-found-page';
+import {
+  setCurrentComment,
+  setCurrentRating,
+} from '../../store/cities-process/cities-process';
+import { isFavoritesLoadingSelector } from '../../store/selectors';
 
 function OfferPage(): JSX.Element {
   const initialComments = useAppSelector(
@@ -34,6 +39,7 @@ function OfferPage(): JSX.Element {
   const randomOffersNearby = useAppSelector(
     (state) => state[NameSpace.Data].randomOffersNearby
   );
+  const isFavoritesLoading = useAppSelector(isFavoritesLoadingSelector);
 
   const apartmentType =
     ApartmentType[chosenOffer?.type as keyof typeof ApartmentType];
@@ -44,6 +50,8 @@ function OfferPage(): JSX.Element {
 
   useEffect(() => {
     dispatch(fetchChosenOfferAction({ offerId: id }));
+    dispatch(setCurrentComment(''));
+    dispatch(setCurrentRating(0));
     dispatch(fetchOffersNearbyAction({ offerId: id }));
   }, [dispatch, id]);
 
@@ -86,6 +94,7 @@ function OfferPage(): JSX.Element {
                       'offer__bookmark-button--active': chosenOffer.isFavorite,
                     })}
                     type="button"
+                    disabled={isFavoritesLoading}
                   >
                     <svg
                       className="offer__bookmark-icon"
@@ -126,12 +135,26 @@ function OfferPage(): JSX.Element {
                 <li className="offer__feature offer__feature--entire">
                   {apartmentType}
                 </li>
-                <li className="offer__feature offer__feature--bedrooms">
-                  {chosenOffer.bedrooms} Bedrooms
-                </li>
-                <li className="offer__feature offer__feature--adults">
-                  Max {chosenOffer.maxAdults} adults
-                </li>
+                {chosenOffer.bedrooms !== 1 && (
+                  <li className="offer__feature offer__feature--bedrooms">
+                    {chosenOffer.bedrooms} Bedrooms
+                  </li>
+                )}
+                {chosenOffer.bedrooms === 1 && (
+                  <li className="offer__feature offer__feature--bedrooms">
+                    1 Bedroom
+                  </li>
+                )}
+                {chosenOffer.maxAdults !== 1 && (
+                  <li className="offer__feature offer__feature--adults">
+                    Max {chosenOffer.maxAdults} adults
+                  </li>
+                )}
+                {chosenOffer.maxAdults === 1 && (
+                  <li className="offer__feature offer__feature--adults">
+                    Max 1 adult
+                  </li>
+                )}
               </ul>
               <div className="offer__price">
                 <b className="offer__price-value">€{chosenOffer.price}</b>
